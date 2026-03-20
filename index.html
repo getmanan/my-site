@@ -1438,12 +1438,17 @@ function burst(n){
 }
 
 /* ── FORM ── */
-document.getElementById('formSubmit').addEventListener('click',()=>{
-  const name=document.getElementById('fname').value.trim();
-  const phone=document.getElementById('fphone').value.trim();
-  const zone=document.getElementById('fzone').value;
-  const qty=document.getElementById('fqty').value;
-  const errs=[!name&&'fname',phone.length<9&&'fphone',!zone&&'fzone',+qty<1&&'fqty'].filter(Boolean);
+document.getElementById('formSubmit').addEventListener('click', async () => {
+  const name    = document.getElementById('fname').value.trim();
+  const phone   = document.getElementById('fphone').value.trim();
+  const zone    = document.getElementById('fzone').value;
+  const qty     = document.getElementById('fqty').value;
+  const comment = document.getElementById('fcomment').value.trim();
+  const street  = document.getElementById('fstreet').value.trim();
+  const district= document.getElementById('fdistrict').value.trim();
+  const city    = document.getElementById('fcity').value.trim();
+
+  const errs = [!name&&'fname', phone.length<9&&'fphone', !zone&&'fzone', +qty<1&&'fqty'].filter(Boolean);
   if(errs.length){
     errs.forEach(id=>{
       const el=document.getElementById(id);
@@ -1451,9 +1456,47 @@ document.getElementById('formSubmit').addEventListener('click',()=>{
       setTimeout(()=>{el.style.borderColor='';el.style.boxShadow=''},2500);
     });return;
   }
-  document.getElementById('formFields').style.display='none';
-  document.getElementById('successBox').classList.add('show');
-  burst(55);
+
+  const zoneLabel = zone === 'odessa'
+    ? '📍 Одеса' + (street ? `, ${street}` : '')
+    : '🗺️ Одеська обл.' + (district ? `, ${district}` : '') + (city ? `, ${city}` : '');
+
+  const text = `🎈 <b>Нове замовлення — HePRO</b>\n\n`
+    + `👤 <b>Ім'я:</b> ${name}\n`
+    + `📞 <b>Телефон:</b> ${phone}\n`
+    + `📦 <b>Кількість балонів:</b> ${qty}\n`
+    + `🚚 <b>Доставка:</b> ${zoneLabel}\n`
+    + (comment ? `💬 <b>Коментар:</b> ${comment}\n` : '');
+
+  const BOT_TOKEN = '8645616259:AAGhDjwxQCPDg77fBYsqoSpAtuBIhNbbOhk';
+  const CHAT_ID   = '-4854196393';
+
+  const btn = document.getElementById('formSubmit');
+  btn.textContent = '⏳ Відправляємо...';
+  btn.disabled = true;
+
+  try {
+    const res = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ chat_id: CHAT_ID, text, parse_mode: 'HTML' })
+    });
+    const data = await res.json();
+    if(data.ok){
+      document.getElementById('formFields').style.display = 'none';
+      document.getElementById('successBox').classList.add('show');
+      burst(55);
+      setTimeout(() => location.reload(), 3000);
+    } else {
+      alert('Помилка відправки. Спробуйте ще раз або зателефонуйте нам.');
+      btn.textContent = '🎈 Відправити замовлення';
+      btn.disabled = false;
+    }
+  } catch(e) {
+    alert('Помилка з\'єднання. Спробуйте ще раз або зателефонуйте нам.');
+    btn.textContent = '🎈 Відправити замовлення';
+    btn.disabled = false;
+  }
 });
 </script>
 </body>
