@@ -544,23 +544,17 @@ section[id]{scroll-margin-top:72px}
   font-family:'Space Grotesk',sans-serif;font-size:.65rem;font-weight:600;
   text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);
   padding-bottom:.6rem;border-bottom:1.5px solid var(--border-lt);
-  display:grid;grid-template-columns:26px 1fr 1fr 36px;
+  display:grid;grid-template-columns:1fr 1fr 36px;
   gap:1rem;margin-bottom:.4rem;
 }
 
-/* Рядок — desktop: [номер] [поля×2] [кнопка] */
+/* Рядок — desktop */
 .c-row{
-  display:grid;
-  grid-template-columns:26px 1fr 36px;
+  display:grid;grid-template-columns:1fr 1fr 36px;
   gap:1rem;align-items:center;
   padding:.7rem 0;border-bottom:1px solid var(--border-lt);
 }
 .c-row:last-child{border-bottom:none}
-/* Поля всередині рядка — два рівних стовпці */
-.c-fields{
-  display:grid;grid-template-columns:1fr 1fr;
-  gap:1rem;align-items:end;
-}
 
 .c-inp-wrap{display:flex;align-items:center;gap:.3rem}
 .c-row-num{
@@ -650,31 +644,33 @@ section[id]{scroll-margin-top:72px}
 
   /* Кожен рядок — окрема картка */
   .c-row{
-    display:grid;
-    grid-template-columns:26px 1fr 32px;
-    gap:.6rem;align-items:start;
+    display:block;
     background:var(--bg);
     border:1.5px solid var(--border-lt);
     border-radius:var(--r);
-    padding:.8rem .7rem;
+    padding:1rem 1rem .8rem;
     margin-bottom:.6rem;
+    position:relative;
     border-bottom:1.5px solid var(--border-lt) !important;
   }
   .c-row:last-child{border-bottom:1.5px solid var(--border-lt) !important}
 
-  /* Номер рядка */
+  /* Номер рядка в картці — зверху зліва */
   .c-row-num{
+    position:absolute;top:.75rem;left:.75rem;
     width:24px;height:24px;font-size:.7rem;
-    margin-top:.4rem;
   }
 
-  /* Кнопка видалення */
-  .rm-btn{width:28px;height:28px;font-size:.85rem;margin-top:.3rem}
+  /* Кнопка видалення — зверху справа */
+  .c-row .rm-btn-wrap{
+    position:absolute;top:.6rem;right:.6rem;
+  }
+  .rm-btn{width:28px;height:28px;font-size:.85rem}
 
   /* Поля вводу — стекуються вертикально */
-  .c-fields{
-    grid-template-columns:1fr !important;
-    gap:.5rem;
+  .c-row .c-fields{
+    padding-top:1.6rem;
+    display:flex;flex-direction:column;gap:.6rem;
   }
   .c-inp-label{
     font-family:'Space Grotesk',sans-serif;
@@ -1005,6 +1001,9 @@ section[id]{scroll-margin-top:72px}
   .form-grid{grid-template-columns:1fr}
   .fg.full{grid-column:span 1}
   .submit-btns,.form-submit-single{margin-top:.8rem}
+  .form-card{padding:1.6rem 1.2rem;border-radius:var(--r-lg)}
+  #order .container{padding:0 1rem}
+  .form-title{font-size:1.5rem}
   /* Footer */
   .footer-grid{grid-template-columns:1fr;gap:2rem}
   .rev-card{padding:1.8rem 1.2rem}
@@ -1046,7 +1045,9 @@ section[id]{scroll-margin-top:72px}
   background:var(--white);border:1px solid var(--border-lt);
   border-radius:var(--r-xl);padding:2.8rem;
   box-shadow:var(--shadow-lg);
+  box-sizing:border-box;width:100%;
 }
+.fi{box-sizing:border-box;width:100%}
 .form-title{
   font-family:'Montserrat',sans-serif;font-size:clamp(1.5rem,3vw,1.9rem);
   font-weight:800;
@@ -1385,7 +1386,6 @@ footer{background:var(--text);color:rgba(255,255,255,.7);padding:4rem 0 2rem;pos
     <div class="calc-wrap fu">
 
       <div class="calc-row-hd">
-        <span></span>
         <span>Об'єм кульки, м³</span>
         <span>Кількість кульок, шт</span>
         <span></span>
@@ -1793,17 +1793,14 @@ function renderRows(){
     const color = ROW_COLORS[i % ROW_COLORS.length];
     const div = document.createElement('div');
     div.className = 'c-row';
-    const delBtn = rows.length > 1
-      ? `<button class="rm-btn" data-i="${i}" title="Видалити">×</button>`
-      : `<span></span>`;
     div.innerHTML = `
       <span class="c-row-num" style="background:${color}18;color:${color}">${i+1}</span>
+      ${rows.length > 1 ? `<div class="rm-btn-wrap"><button class="rm-btn" data-i="${i}" title="Видалити">×</button></div>` : ''}
       <div class="c-fields">
         <div>
           <span class="c-inp-label">Об'єм кульки</span>
           <div class="c-inp-wrap">
             <input class="c-inp" type="number" inputmode="decimal"
-              id="inp-vol-${i}"
               min="0.0001" max="9.9999" step="0.0001"
               value="${r.vol}" data-field="vol" data-i="${i}"
               placeholder="0.0000">
@@ -1814,7 +1811,6 @@ function renderRows(){
           <span class="c-inp-label">Кількість кульок</span>
           <div class="c-inp-wrap">
             <input class="c-inp" type="number" inputmode="numeric"
-              id="inp-qty-${i}"
               min="0" max="99999" step="1"
               value="${r.qty}" data-field="qty" data-i="${i}"
               placeholder="0">
@@ -1822,7 +1818,6 @@ function renderRows(){
           </div>
         </div>
       </div>
-      ${delBtn}
     `;
     rb.appendChild(div);
   });
